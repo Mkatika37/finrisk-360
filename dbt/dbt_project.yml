@@ -1,0 +1,20 @@
+name: "finrisk_360"
+version: "1.0.0"
+config-version: 2
+
+profile: "finrisk_360"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  source_database: "{{ env_var('SNOWFLAKE_DATABASE', 'FINRISK_360') }}"
+  source_schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'PUBLIC') }}"
