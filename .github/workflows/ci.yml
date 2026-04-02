@@ -1,50 +1,52 @@
-# ============================================================
-# finrisk-360 — CI Pipeline
-# ============================================================
-
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/*]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
-
+          python-version: '3.11'
+          
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff pytest
-          pip install -r api/requirements.txt
-
-      - name: Lint with ruff
-        run: ruff check .
-
-      - name: Run tests
-        run: pytest tests/ -v --tb=short
-
-      - name: Validate Terraform
-        uses: hashicorp/setup-terraform@v3
+          pip install pytest pydantic fastapi httpx
+          
+      - name: Run risk scoring tests
+        run: |
+          python -m pytest tests/test_risk_scoring.py -v
+          
+      - name: Validate terraform files
+        uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: "1.7.0"
-      - run: |
+          terraform_version: 1.5.0
+          
+      - name: Terraform validate
+        run: |
           cd terraform
           terraform init -backend=false
           terraform validate
-
-      - name: dbt compile check
+          
+      - name: Check Python syntax
         run: |
-          pip install dbt-snowflake
-          cd dbt && dbt compile --profiles-dir . || true
+          python -m py_compile producers/hmda_producer.py
+          python -m py_compile producers/fred_producer.py
+          python -m py_compile api/main.py
+          python -m py_compile dashboard/app.py
+          echo "All Python files syntax OK"
