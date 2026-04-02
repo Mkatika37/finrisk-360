@@ -37,3 +37,12 @@ output "glue_catalog_database" {
 output "athena_workgroup" {
   value = aws_athena_workgroup.finrisk360.name
 }
+
+output "eventbridge_glue_job1_rule" {
+  value = aws_scheduler_schedule.glue_job1.arn
+}
+
+output "eventbridge_glue_job2_rule" {
+  value = aws_scheduler_schedule.glue_job2.arn
+}
+

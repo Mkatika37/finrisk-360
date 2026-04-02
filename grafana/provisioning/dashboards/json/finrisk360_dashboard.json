@@ -1,0 +1,110 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Pipeline Health",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }
+      },
+      "targets": [{ "expr": "up{job=\"api\"}", "refId": "A" }],
+      "options": { "textMode": "name", "colorMode": "background", "justifyMode": "center" }
+    },
+    {
+      "title": "Airflow Status",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "mappings": [{ "options": { "0": { "color": "red", "text": "OFFLINE" }, "1": { "color": "green", "text": "ONLINE" } }, "type": "value" }] }
+      },
+      "targets": [{ "expr": "up{job=\"airflow\"}", "refId": "A" }],
+      "options": { "textMode": "value", "colorMode": "background" }
+    },
+    {
+      "title": "Total API Volume",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "sum(http_requests_total{job=\"api\"}) or vector(0)", "refId": "A" }],
+      "options": { "colorMode": "background", "textMode": "value" }
+    },
+    {
+      "title": "Kafka Topic Health (Agentless)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(kafka_topic_offset{topic=~\"$topic\"}) by (topic)", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "list", "placement": "right" } }
+    },
+    {
+      "title": "Processing Latency (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "rate(http_request_duration_seconds_sum{job=\"api\"}[2m]) / rate(http_request_duration_seconds_count{job=\"api\"}[2m]) * 1000", "refId": "A" }
+      ]
+    },
+    {
+      "title": "Mortgage Risk Distribution (Real-time)",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "sum(risk_tier_count{risk_tier=~\"$tier\"}) by (risk_tier)", "refId": "A" }],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "tooltip": { "mode": "single" },
+        "displayLabels": []
+      }
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["finrisk360", "observability"],
+  "templating": {
+    "list": [
+      {
+        "name": "topic",
+        "label": "Kafka Topic",
+        "type": "query",
+        "datasource": "Prometheus",
+        "definition": "label_values(kafka_topic_offset, topic)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*"
+      },
+      {
+        "name": "tier",
+        "label": "Risk Tier",
+        "type": "custom",
+        "options": [
+          {"text": "LOW", "value": "LOW"},
+          {"text": "MEDIUM", "value": "MEDIUM"},
+          {"text": "HIGH", "value": "HIGH"},
+          {"text": "CRITICAL", "value": "CRITICAL"}
+        ],
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": ".*" }
+      }
+    ]
+  },
+  "time": { "from": "now-30m", "to": "now" },
+  "title": "FinRisk 360 Full Interactive Hub",
+  "uid": "finrisk360_mon",
+  "version": 6
+}

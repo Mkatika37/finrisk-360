@@ -1,5 +1,0 @@
-{
-  "Name": "glueetl",
-  "ScriptLocation": "s3://finrisk360-raw-322960458535/scripts/glue_silver_to_gold.py",
-  "PythonVersion": "3"
-}
