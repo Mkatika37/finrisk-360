@@ -18,6 +18,8 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -61,6 +63,7 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://finrisk:finrisk_dev@postgres:5432/finrisk_meta
+      AIRFLOW__WEBSERVER__SECRET_KEY: "finrisk_360_secret_key_1234567890"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       _AIRFLOW_DB_MIGRATE: "true"
       _AIRFLOW_WWW_USER_CREATE: "true"
@@ -85,15 +88,34 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_started
+    env_file:
+      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://finrisk:finrisk_dev@postgres:5432/finrisk_meta
+      AIRFLOW__WEBSERVER__SECRET_KEY: "finrisk_360_secret_key_1234567890"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      _PIP_ADDITIONAL_REQUIREMENTS: >-
+        fredapi
+        kafka-python
+        boto3
+        alpha_vantage
+        python-dotenv
+        pandas
+        requests
+        snowflake-connector-python
+        dbt-core
+        dbt-snowflake
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
       - airflow-logs:/opt/airflow/logs
+      - ./producers:/opt/airflow/producers
+      - ./.env:/opt/airflow/.env
+      - ./ingestion/kinesis_bridge.py:/opt/airflow/kinesis_bridge.py
+      - ./finrisk_dbt:/opt/airflow/finrisk_dbt
     ports:
       - "8080:8080"
     command: webserver
@@ -113,14 +135,33 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_started
+    env_file:
+      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://finrisk:finrisk_dev@postgres:5432/finrisk_meta
+      AIRFLOW__WEBSERVER__SECRET_KEY: "finrisk_360_secret_key_1234567890"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      _PIP_ADDITIONAL_REQUIREMENTS: >-
+        fredapi
+        kafka-python
+        boto3
+        alpha_vantage
+        python-dotenv
+        pandas
+        requests
+        snowflake-connector-python
+        dbt-core
+        dbt-snowflake
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
       - airflow-logs:/opt/airflow/logs
+      - ./producers:/opt/airflow/producers
+      - ./.env:/opt/airflow/.env
+      - ./ingestion/kinesis_bridge.py:/opt/airflow/kinesis_bridge.py
+      - ./finrisk_dbt:/opt/airflow/finrisk_dbt
     command: scheduler
     restart: on-failure
 
@@ -157,3 +198,5 @@ volumes:
   pgdata:
   airflow-logs:
   grafana-data:
+  kafka_data:
+    driver: local

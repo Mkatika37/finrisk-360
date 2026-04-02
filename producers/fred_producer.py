@@ -35,8 +35,9 @@ OBSERVATION_START = "2020-01-01"
 def connect_kafka() -> KafkaProducer:
     """Connect to Kafka and return a KafkaProducer."""
     try:
+        KAFKA_BOOTSTRAP = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
         producer = KafkaProducer(
-            bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+            bootstrap_servers=[KAFKA_BOOTSTRAP],
             value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         )
         print(f"Connected to Kafka at {KAFKA_BOOTSTRAP_SERVERS}")

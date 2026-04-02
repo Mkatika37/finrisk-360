@@ -1,0 +1,20 @@
+﻿22:51:58  Running with dbt=1.11.7
+22:52:00  Registered adapter: snowflake=1.11.3
+22:52:01  Found 4 models, 12 data tests, 1 source, 523 macros
+22:52:01  
+22:52:01  Concurrency: 4 threads (target='dev')
+22:52:01  
+22:52:03  1 of 4 START sql view model ANALYTICS.stg_loan_risk_scores ..................... [RUN]
+22:52:04  1 of 4 OK created sql view model ANALYTICS.stg_loan_risk_scores ................ [SUCCESS 1 in 1.22s]
+22:52:04  2 of 4 START sql table model ANALYTICS.mart_daily_risk_trend ................... [RUN]
+22:52:04  3 of 4 START sql table model ANALYTICS.mart_high_risk_loans .................... [RUN]
+22:52:04  4 of 4 START sql table model ANALYTICS.mart_risk_summary ....................... [RUN]
+22:52:05  4 of 4 OK created sql table model ANALYTICS.mart_risk_summary .................. [SUCCESS 4 in 1.14s]
+22:52:06  3 of 4 OK created sql table model ANALYTICS.mart_high_risk_loans ............... [SUCCESS 81469 in 1.75s]
+22:52:06  2 of 4 OK created sql table model ANALYTICS.mart_daily_risk_trend .............. [SUCCESS 4 in 1.82s]
+22:52:07  
+22:52:07  Finished running 3 table models, 1 view model in 0 hours 0 minutes and 6.00 seconds (6.00s).
+22:52:07  
+22:52:07  Completed successfully
+22:52:07  
+22:52:07  Done. PASS=4 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=4

@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: stg_loan_risk_scores
+    columns:
+      - name: risk_score
+        tests:
+          - not_null
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+      - name: loan_amount
+        tests:
+          - not_null
+
+  - name: mart_risk_summary
+    columns:
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+
+  - name: mart_high_risk_loans
+    columns:
+      - name: risk_score
+        tests:
+          - not_null
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['HIGH', 'CRITICAL']
+      - name: loan_amount
+        tests:
+          - not_null
+
+  - name: mart_daily_risk_trend
+    columns:
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']

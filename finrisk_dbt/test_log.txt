@@ -1,0 +1,36 @@
+﻿22:52:10  Running with dbt=1.11.7
+22:52:12  Registered adapter: snowflake=1.11.3
+22:52:12  Found 4 models, 12 data tests, 1 source, 523 macros
+22:52:12  
+22:52:12  Concurrency: 4 threads (target='dev')
+22:52:12  
+22:52:14  1 of 12 START test accepted_values_mart_daily_risk_trend_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [RUN]
+22:52:14  2 of 12 START test accepted_values_mart_high_risk_loans_risk_tier__HIGH__CRITICAL  [RUN]
+22:52:14  3 of 12 START test accepted_values_mart_risk_summary_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [RUN]
+22:52:14  4 of 12 START test accepted_values_stg_loan_risk_scores_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [RUN]
+22:52:14  3 of 12 PASS accepted_values_mart_risk_summary_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [PASS in 0.60s]
+22:52:14  5 of 12 START test not_null_mart_daily_risk_trend_risk_tier .................... [RUN]
+22:52:14  2 of 12 PASS accepted_values_mart_high_risk_loans_risk_tier__HIGH__CRITICAL .... [PASS in 0.65s]
+22:52:14  6 of 12 START test not_null_mart_high_risk_loans_loan_amount ................... [RUN]
+22:52:15  5 of 12 PASS not_null_mart_daily_risk_trend_risk_tier .......................... [PASS in 0.29s]
+22:52:15  7 of 12 START test not_null_mart_high_risk_loans_risk_score .................... [RUN]
+22:52:15  7 of 12 PASS not_null_mart_high_risk_loans_risk_score .......................... [PASS in 0.12s]
+22:52:15  8 of 12 START test not_null_mart_high_risk_loans_risk_tier ..................... [RUN]
+22:52:15  6 of 12 PASS not_null_mart_high_risk_loans_loan_amount ......................... [PASS in 0.64s]
+22:52:15  8 of 12 PASS not_null_mart_high_risk_loans_risk_tier ........................... [PASS in 0.26s]
+22:52:15  4 of 12 PASS accepted_values_stg_loan_risk_scores_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [PASS in 1.31s]
+22:52:15  9 of 12 START test not_null_mart_risk_summary_risk_tier ........................ [RUN]
+22:52:15  10 of 12 START test not_null_stg_loan_risk_scores_loan_amount .................. [RUN]
+22:52:15  1 of 12 PASS accepted_values_mart_daily_risk_trend_risk_tier__LOW__MEDIUM__HIGH__CRITICAL  [PASS in 1.33s]
+22:52:15  11 of 12 START test not_null_stg_loan_risk_scores_risk_score ................... [RUN]
+22:52:15  12 of 12 START test not_null_stg_loan_risk_scores_risk_tier .................... [RUN]
+22:52:15  10 of 12 PASS not_null_stg_loan_risk_scores_loan_amount ........................ [PASS in 0.18s]
+22:52:15  11 of 12 PASS not_null_stg_loan_risk_scores_risk_score ......................... [PASS in 0.22s]
+22:52:15  9 of 12 PASS not_null_mart_risk_summary_risk_tier .............................. [PASS in 0.25s]
+22:52:15  12 of 12 PASS not_null_stg_loan_risk_scores_risk_tier .......................... [PASS in 0.26s]
+22:52:16  
+22:52:16  Finished running 12 data tests in 0 hours 0 minutes and 3.15 seconds (3.15s).
+22:52:16  
+22:52:16  Completed successfully
+22:52:16  
+22:52:16  Done. PASS=12 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=12

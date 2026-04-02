@@ -26,7 +26,7 @@ STATE_FIPS = {
 
 VARIABLES = ["NAME", "B25077_001E", "B19013_001E", "B25003_002E"]
 
-def fetch_state_data(fips: str) -> list[dict]:
+def fetch_state_data(fips: str) -> list:
     """Fetch ACS data for a specific state and return as a list of dicts."""
     params = {
         "get": ",".join(VARIABLES),

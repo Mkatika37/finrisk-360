@@ -1,0 +1,229 @@
+aws_kinesis_stream.finrisk360_stream: Refreshing state... [id=arn:aws:kinesis:us-east-1:322960458535:stream/finrisk360-stream]
+aws_iam_role.glue_role: Refreshing state... [id=finrisk360-glue-role]
+aws_iam_role.lambda_role: Refreshing state... [id=finrisk360-lambda-role]
+aws_sns_topic.alerts: Refreshing state... [id=arn:aws:sns:us-east-1:322960458535:finrisk360-alerts]
+aws_s3_bucket.gold: Refreshing state... [id=finrisk360-gold-322960458535]
+aws_s3_bucket.silver: Refreshing state... [id=finrisk360-silver-322960458535]
+aws_s3_bucket.raw: Refreshing state... [id=finrisk360-raw-322960458535]
+aws_sns_topic_subscription.email: Refreshing state... [id=arn:aws:sns:us-east-1:322960458535:finrisk360-alerts:bf6bb25b-a7e5-40ff-892c-fdbebb538ee2]
+aws_cloudwatch_metric_alarm.lambda_errors: Refreshing state... [id=finrisk360-lambda-errors]
+aws_iam_role_policy_attachment.lambda_kinesis_readonly: Refreshing state... [id=finrisk360-lambda-role-20260331212243721100000001]
+aws_iam_role_policy_attachment.lambda_s3_full: Refreshing state... [id=finrisk360-lambda-role-20260331212243760600000002]
+aws_lambda_function.lambda_alert: Refreshing state... [id=lambda_alert]
+aws_lambda_function.lambda_dq_trigger: Refreshing state... [id=lambda_dq_trigger]
+aws_iam_role_policy_attachment.lambda_basic_execution: Refreshing state... [id=finrisk360-lambda-role-20260331212244028000000007]
+aws_iam_role_policy_attachment.glue_s3_full: Refreshing state... [id=finrisk360-glue-role-20260331212243802100000003]
+aws_iam_role_policy_attachment.lambda_sns_full: Refreshing state... [id=finrisk360-lambda-role-20260331212243872900000006]
+aws_iam_role_policy_attachment.glue_service: Refreshing state... [id=finrisk360-glue-role-20260331212243804300000004]
+aws_iam_role_policy_attachment.glue_cloudwatch_full: Refreshing state... [id=finrisk360-glue-role-20260331212243840500000005]
+aws_s3_bucket_public_access_block.gold_block: Refreshing state... [id=finrisk360-gold-322960458535]
+aws_s3_bucket_versioning.gold_versioning: Refreshing state... [id=finrisk360-gold-322960458535]
+aws_s3_bucket_lifecycle_configuration.gold_lifecycle: Refreshing state... [id=finrisk360-gold-322960458535]
+aws_cloudwatch_log_group.lambda_dq_trigger: Refreshing state... [id=/aws/lambda/lambda_dq_trigger]
+aws_s3_bucket_public_access_block.raw_block: Refreshing state... [id=finrisk360-raw-322960458535]
+aws_s3_bucket_lifecycle_configuration.raw_lifecycle: Refreshing state... [id=finrisk360-raw-322960458535]
+aws_lambda_function.lambda_kinesis_sink: Refreshing state... [id=lambda_kinesis_sink]
+aws_cloudwatch_log_group.lambda_alert: Refreshing state... [id=/aws/lambda/lambda_alert]
+aws_s3_bucket_public_access_block.silver_block: Refreshing state... [id=finrisk360-silver-322960458535]
+aws_lambda_permission.allow_s3: Refreshing state... [id=AllowExecutionFromS3Bucket]
+aws_s3_bucket_lifecycle_configuration.silver_lifecycle: Refreshing state... [id=finrisk360-silver-322960458535]
+aws_s3_bucket_notification.silver_notification: Refreshing state... [id=finrisk360-silver-322960458535]
+aws_cloudwatch_log_group.lambda_kinesis_sink: Refreshing state... [id=/aws/lambda/lambda_kinesis_sink]
+aws_lambda_event_source_mapping.kinesis_trigger: Refreshing state... [id=1600f5fd-25f8-4c7d-ae61-b7ba22bf1eec]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_athena_workgroup.finrisk360 will be created
+  + resource "aws_athena_workgroup" "finrisk360" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "finrisk360-workgroup"
+      + state         = "ENABLED"
+      + tags_all      = (known after apply)
+
+      + configuration {
+          + enforce_workgroup_configuration    = true
+          + publish_cloudwatch_metrics_enabled = true
+          + requester_pays_enabled             = false
+
+          + result_configuration {
+              + output_location = "s3://finrisk360-raw-322960458535/athena-results/"
+            }
+        }
+    }
+
+  # aws_glue_catalog_database.finrisk360 will be created
+  + resource "aws_glue_catalog_database" "finrisk360" {
+      + arn          = (known after apply)
+      + catalog_id   = (known after apply)
+      + description  = "FinRisk 360 mortgage risk data catalog"
+      + id           = (known after apply)
+      + location_uri = (known after apply)
+      + name         = "finrisk360_catalog"
+      + tags_all     = (known after apply)
+
+      + create_table_default_permission (known after apply)
+    }
+
+  # aws_glue_crawler.gold will be created
+  + resource "aws_glue_crawler" "gold" {
+      + arn           = (known after apply)
+      + database_name = "finrisk360_catalog"
+      + id            = (known after apply)
+      + name          = "finrisk360-gold-crawler"
+      + role          = "arn:aws:iam::322960458535:role/finrisk360-glue-role"
+      + schedule      = "cron(0 4 * * ? *)"
+      + table_prefix  = "gold_"
+      + tags_all      = (known after apply)
+
+      + s3_target {
+          + path = "s3://finrisk360-gold-322960458535/risk_scores/"
+        }
+
+      + schema_change_policy {
+          + delete_behavior = "LOG"
+          + update_behavior = "UPDATE_IN_DATABASE"
+        }
+    }
+
+  # aws_glue_crawler.raw will be created
+  + resource "aws_glue_crawler" "raw" {
+      + arn           = (known after apply)
+      + database_name = "finrisk360_catalog"
+      + id            = (known after apply)
+      + name          = "finrisk360-raw-crawler"
+      + role          = "arn:aws:iam::322960458535:role/finrisk360-glue-role"
+      + schedule      = "cron(0 3 * * ? *)"
+      + table_prefix  = "raw_"
+      + tags_all      = (known after apply)
+
+      + s3_target {
+          + path = "s3://finrisk360-raw-322960458535/loans/"
+        }
+
+      + schema_change_policy {
+          + delete_behavior = "LOG"
+          + update_behavior = "UPDATE_IN_DATABASE"
+        }
+    }
+
+  # aws_glue_crawler.silver will be created
+  + resource "aws_glue_crawler" "silver" {
+      + arn           = (known after apply)
+      + database_name = "finrisk360_catalog"
+      + id            = (known after apply)
+      + name          = "finrisk360-silver-crawler"
+      + role          = "arn:aws:iam::322960458535:role/finrisk360-glue-role"
+      + schedule      = "cron(30 3 * * ? *)"
+      + table_prefix  = "silver_"
+      + tags_all      = (known after apply)
+
+      + s3_target {
+          + path = "s3://finrisk360-silver-322960458535/loans/"
+        }
+
+      + schema_change_policy {
+          + delete_behavior = "LOG"
+          + update_behavior = "UPDATE_IN_DATABASE"
+        }
+    }
+
+  # aws_iam_role.glue_role will be updated in-place
+  ~ resource "aws_iam_role" "glue_role" {
+      ~ assume_role_policy    = jsonencode(
+          ~ {
+              ~ Statement = [
+                    {
+                        Action    = "sts:AssumeRole"
+                        Effect    = "Allow"
+                        Principal = {
+                            Service = "glue.amazonaws.com"
+                        }
+                    },
+                  - {
+                      - Action    = "sts:AssumeRole"
+                      - Condition = {
+                          - StringEquals = {
+                              - "sts:ExternalId" = "TXC02740_SFCRole=4_MDNGFZiwiwyHqcodf0FidhDFMBI="
+                            }
+                        }
+                      - Effect    = "Allow"
+                      - Principal = {
+                          - AWS = "arn:aws:iam::247332612486:user/0z4m1000-s"
+                        }
+                    },
+                ]
+                # (1 unchanged attribute hidden)
+            }
+        )
+        id                    = "finrisk360-glue-role"
+        name                  = "finrisk360-glue-role"
+        tags                  = {}
+        # (11 unchanged attributes hidden)
+    }
+
+  # aws_iam_role_policy.glue_catalog_inline will be created
+  + resource "aws_iam_role_policy" "glue_catalog_inline" {
+      + id          = (known after apply)
+      + name        = "glue_catalog_inline_policy"
+      + name_prefix = (known after apply)
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "glue:GetDatabase",
+                          + "glue:GetTable",
+                          + "glue:GetTables",
+                          + "glue:GetPartition",
+                          + "glue:GetPartitions",
+                          + "glue:CreateTable",
+                          + "glue:UpdateTable",
+                          + "glue:BatchCreatePartition",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + role        = "finrisk360-glue-role"
+    }
+
+  # aws_iam_role_policy_attachment.glue_athena_full will be created
+  + resource "aws_iam_role_policy_attachment" "glue_athena_full" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
+      + role       = "finrisk360-glue-role"
+    }
+
+Plan: 7 to add, 1 to change, 0 to destroy.
+
+Changes to Outputs:
+  + athena_workgroup        = "finrisk360-workgroup"
+  + glue_catalog_database   = "finrisk360_catalog"
+
+Warning: Invalid Attribute Combination
+
+  with aws_s3_bucket_lifecycle_configuration.raw_lifecycle,
+  on s3.tf line 13, in resource "aws_s3_bucket_lifecycle_configuration" "raw_lifecycle":
+  13: resource "aws_s3_bucket_lifecycle_configuration" "raw_lifecycle" {
+
+No attribute specified when one (and only one) of
+[rule[0].filter,rule[0].prefix] is required
+
+This will be an error in a future version of the provider
+
+(and 2 more similar warnings elsewhere)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

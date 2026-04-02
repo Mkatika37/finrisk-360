@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: finrisk360
+    database: FINRISK360
+    schema: ANALYTICS
+    tables:
+      - name: loan_risk_scores

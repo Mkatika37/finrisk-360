@@ -1,33 +1,17 @@
-# ============================================================
-# finrisk-360 — Terraform variables
-# ============================================================
-
 variable "aws_region" {
-  description = "AWS region for all resources"
+  description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
 
-variable "environment" {
-  description = "Deployment environment (dev / staging / prod)"
+variable "project_name" {
+  description = "Project name"
   type        = string
-  default     = "dev"
+  default     = "finrisk360"
 }
 
-variable "snowflake_account" {
-  description = "Snowflake account identifier"
+variable "alert_email" {
+  description = "Email for alerts"
   type        = string
-  sensitive   = true
-}
-
-variable "snowflake_user" {
-  description = "Snowflake username"
-  type        = string
-  sensitive   = true
-}
-
-variable "snowflake_password" {
-  description = "Snowflake password"
-  type        = string
-  sensitive   = true
+  default     = "katikamanohar722@gmail.com"
 }
