@@ -18,6 +18,15 @@
 
 ---
 
+## 🎯 Project Mission & Value
+FinRisk 360 was engineered to solve the "Black Box" problem in mortgage risk modeling. By combining real-time streaming with a deterministic DU (Desktop Underwriter) model, it provides:
+- **Regulatory Transparency**: Every risk score is explainable down to the source HMDA data point.
+- **High-Availability Design**: Decoupled Kafka-Kinesis bridging ensures zero data loss during regional cloud outages.
+- **Enterprise Scalability**: Powered by Snowflake's multi-cluster warehouse, handling 500K+ loans with sub-second retrieval.
+- **Data Governance**: 30+ Great Expectations checks and 12 dbt tests guarantee a "Gold-Standard" data lake.
+
+---
+
 ## 📊 Live Metrics
 
 | Metric | Value |
@@ -165,31 +174,24 @@ finrisk_360/
 </details>
 ---
 
-## 🔄 Pipeline Flow
-INGEST      Airflow triggers producers at 6AM daily
-FRED rates + Alpha Vantage → Kafka topics
-STREAM      kinesis_bridge.py reads Kafka
-→ AWS Kinesis → Lambda auto-triggers
-→ Writes partitioned JSON to S3 Raw
-CATALOG     Glue Crawlers run at 3-4AM daily
-→ Auto-detect schemas in all 3 S3 layers
-→ Update Glue Data Catalog tables
-→ Athena ready for ad-hoc SQL queries
-PROCESS     Glue Job 1: S3 Raw → S3 Silver
-Clean nulls, fix types, validate records
-SCORE       Glue Job 2: S3 Silver → S3 Gold
-Apply Fannie Mae DU formula to all loans
-Assign LOW/MEDIUM/HIGH/CRITICAL tiers
-WAREHOUSE   S3 Gold → Snowflake (COPY INTO)
-dbt run → 4 mart models
-dbt test → 12 data quality tests
-QUALITY     Great Expectations: 30 checks
-Structural + Distribution + Freshness
-SERVE       Snowflake → Streamlit Dashboard
-Formula  → FastAPI <200ms scoring
-MONITOR     Grafana → local pipeline metrics
-CloudWatch → AWS service metrics
-SNS → alerts for critical loans
+---
+
+## 🔄 Technical Pipeline Flow
+
+| Phase | Component | Action | Output |
+| :--- | :--- | :--- | :--- |
+| **INGEST** | Airflow + Kafka | Producers fetch FRED/HMDA data at 6AM | Local Buffer |
+| **STREAM** | Kinesis Bridge | Python agent pushes Kafka msgs to Cloud | AWS Kinesis |
+| **LAMBDA** | AWS Lambda | Event-driven triggers write to storage | S3 RAW (JSON) |
+| **CATALOG** | Glue Crawlers | Auto-detect schema at 3AM daily | Glue Catalog |
+| **PROCESS** | Glue + PySpark | ETL Job 1: Clean, cast, and validate | S3 SILVER (Parquet) |
+| **SCORE** | Glue + PySpark | ETL Job 2: DU Logic + Tier Assignment | S3 GOLD (Risk) |
+| **LOAD** | Snowflake COPY | Bulk ingestion from S3 Gold to WH | Snowflake ANALYTICS |
+| **MODEL** | dbt (SQL) | Staging -> Marts (Summary/Trend) | Analytics Views |
+| **QUALITY** | Great Expects | Automated structural & distribution checks | Validation Report |
+| **SERVE** | Streamlit + API | Business BI + Scorer REST API | Portfolios & Scores |
+
+---
 ---
 
 ## 🚀 Quick Start

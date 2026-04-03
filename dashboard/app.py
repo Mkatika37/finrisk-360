@@ -208,23 +208,61 @@ if nav_page == "🏠 Home":
         st.plotly_chart(fig_g, use_container_width=True)
         st.caption("Benchmark: National Industry Average (0.45)")
 
-    st.subheader("🏗️ Pipeline Architecture")
-    st.code("""
-DATA SOURCES          STREAMING              STORAGE
-────────────          ─────────              ───────
-CFPB HMDA API  ──►  Apache Kafka   ──►  S3 Raw (JSON)
-FRED API       ──►  AWS Kinesis    ──►  S3 Silver (Parquet)
-Alpha Vantage  ──►  Lambda         ──►  S3 Gold (Risk Scores)
-US Census API
+    # ── Interactive Architecture ─────────────────────────────────────────────
+    st.subheader("🏗️ Interactive System Architecture")
+    arch_tabs = st.tabs(["📌 Overview", "📥 Data Ingestion", "⚙️ Processing", "📊 Warehousing & Serving"])
+    
+    with arch_tabs[0]:
+        st.code("""
+SOURCE layer  ─────►  STREAMING layer  ─────►  STORAGE layer  ─────►  WAREHOUSE layer  ─────►  BI layer (Live)
+(CFPB / FRED)       (Kafka / Kinesis)        (AWS S3 Data Lake)      (Snowflake + dbt)       (Streamlit / API)
+        """, language="text")
+        st.info("💡 **Mission**: Detect high-risk mortgage delinquency in real-time using AWS and Snowflake.")
 
-CATALOG               WAREHOUSE              SERVING
-───────               ─────────              ───────
-Glue Crawlers  ──►  Snowflake DWH  ──►  Streamlit Dashboard
-Glue Catalog   ──►  dbt models     ──►  FastAPI REST API
-AWS Athena           Great Expects        Grafana Monitor
-    """, language="text")
+    with arch_tabs[1]:
+        c1, c2 = st.columns(2)
+        c1.markdown("**Producer Tier**")
+        c1.write("- CFPB HMDA API (514K Records)\n- FRED API (Daily Rates)\n- Census API (County Data)")
+        c2.markdown("**Streaming Tier**")
+        c2.write("- Apache Kafka (Local Buffer)\n- AWS Kinesis (Cloud Stream)\n- AWS Lambda (Auto-Ingest)")
 
-    st.info("⚡ **ORCHESTRATION**: Apache Airflow (5 DAGs, daily 6AM) | **IaC**: Terraform (15+ AWS resources) | **MONITORING**: CloudWatch + Grafana + SNS Alerts")
+    with arch_tabs[2]:
+        c1, c2 = st.columns(2)
+        c1.markdown("**ETL Layer (Glue + PySpark)**")
+        c1.write("- Job 1: Clean & Validate Raw JSON\n- Job 2: Calculate Risk Scores")
+        c2.markdown("**Catalog & Query**")
+        c2.write("- Glue Data Catalog (Schema Management)\n- AWS Athena (Serverless SQL on S3)")
+
+    with arch_tabs[3]:
+        c1, c2 = st.columns(2)
+        c1.markdown("**Snowflake + dbt**")
+        c1.write("- dbt Staging (Schema Enforcement)\n- dbt Marts (Business Ready Views)\n- 12+ Data Integrity Tests")
+        c2.markdown("**Serving Tier**")
+        c2.write("- Streamlit (BI Platform)\n- FastAPI (REST Scoring API)\n- Grafana (Ops Monitoring)")
+
+    st.markdown("---")
+
+    # ── Interactive Risk Formula ─────────────────────────────────────────────
+    st.subheader("🧮 Understanding the DU Risk Formula")
+    fc1, fc2 = st.columns([1, 1])
+    
+    with fc1:
+        st.markdown("**Fannie Mae Desktop Underwriter (DU) Logic**")
+        st.write("We use a weighted arithmetic model based on 4 key risk vectors:")
+        formula_data = pd.DataFrame({
+            'Vector': ['LTV (Loan-to-Value)', 'DTI (Debt-to-Income)', 'Interest Rate', 'Macro Stress'],
+            'Weight': [0.30, 0.25, 0.25, 0.20],
+            'Threshold': ['>95% is Critical', '>50% is Critical', '>8.0% is Critical', 'Fixed 0.60 (High)']
+        })
+        st.table(formula_data)
+        
+    with fc2:
+        fig_weight = px.bar(formula_data, x='Vector', y='Weight', color='Vector', 
+                           title="Risk Vector Weighting", template="plotly_dark")
+        fig_weight.update_layout(showlegend=False, height=300)
+        st.plotly_chart(fig_weight, use_container_width=True)
+
+    st.markdown("---")
 
     st.subheader("🛠️ Enterprise Tech Stack")
     tech_data = {
