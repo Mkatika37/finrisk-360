@@ -33,71 +33,68 @@
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
-┌─────────────────────────────────────────────────────────────┐
-│                    DATA SOURCES                              │
-│  CFPB HMDA API │ FRED API │ Alpha Vantage │ US Census API   │
-└────────────────────────┬────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────┐
-│                  STREAMING LAYER                             │
-│      Apache Kafka (local) ──► AWS Kinesis ──► Lambda        │
-│           kinesis_bridge.py bridges local to cloud          │
-└────────────────────────┬────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────┐
-│                   STORAGE LAYER (AWS S3)                     │
-│   Raw (JSON) ──► Silver (Parquet) ──► Gold (Risk Scores)    │
-└────────┬───────────────┬──────────────────┬─────────────────┘
-│               │                  │
-▼               ▼                  ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  CATALOG LAYER                               │
-│  Glue Crawlers (3) ──► Glue Data Catalog ──► AWS Athena     │
-└────────────────────────┬────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────┐
-│                  PROCESSING LAYER                            │
-│  Glue Job 1 (Raw→Silver) ──► Glue Job 2 (Silver→Gold)       │
-│         PySpark ETL              Risk Scoring Formula        │
-└────────────────────────┬────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────┐
-│                  WAREHOUSE LAYER                             │
-│         Snowflake DWH ──► dbt models ──► 12 tests           │
-│      stg_loan_risk_scores │ mart_risk_summary               │
-│      mart_high_risk_loans │ mart_daily_risk_trend           │
-└────────────────────────┬────────────────────────────────────┘
-│
-▼
-┌─────────────────────────────────────────────────────────────┐
-│                   SERVING LAYER                              │
-│   Streamlit Dashboard (5 pages) │ FastAPI REST API (<200ms) │
-└─────────────────────────────────────────────────────────────┘
-Orchestration : Apache Airflow — 5 DAGs, daily 6AM
-IaC           : Terraform — 15+ AWS resources
-Backup        : AWS EventBridge — independent Glue triggers
-Monitoring    : Grafana + CloudWatch + SNS Alerts
-Quality       : Great Expectations — 30 checks
+```mermaid
+graph TD
+    subgraph "DATA SOURCES"
+        A1[CFPB HMDA API]
+        A2[FRED API]
+        A3[Alpha Vantage]
+        A4[US Census API]
+    end
+
+    subgraph "STREAMING LAYER"
+        B1[Apache Kafka Local] --> B2[Kinesis Bridge]
+        B2 --> B3[AWS Kinesis Data Stream]
+        B3 --> B4[AWS Lambda Ingest]
+    end
+
+    subgraph "DATA LAKE (AWS S3)"
+        C1[(S3 RAW JSON)] --> C2[(S3 SILVER Parquet)]
+        C2 --> C3[(S3 GOLD Score)]
+    end
+
+    subgraph "PROCESSING & CATALOG"
+        D1[Glue Crawlers] --> D2[Glue Data Catalog]
+        D3[Glue ETL Job 1] --> C2
+        D4[Glue ETL Job 2] --> C3
+    end
+
+    subgraph "WAREHOUSE & SERVING"
+        C3 --> E1[(Snowflake DWH)]
+        E1 --> E2[dbt Transformations]
+        E2 --> F1[Streamlit Dashboard]
+        E2 --> F2[FastAPI REST API]
+    end
+
+    A1 & A2 & A3 & A4 --> B1
+    B4 --> C1
+    C1 --> D3
+    C2 --> D4
+```
+
+> **Orchestration**: Apache Airflow | **IaC**: Terraform | **Quality**: Great Expectations | **Monitoring**: Grafana
+
+---
 ---
 
 ## 🧮 Risk Scoring Formula (Fannie Mae DU)
-risk_score = LTV × 0.30 + DTI × 0.25 +
-RateSpread × 0.25 + MacroStress × 0.20
-LTV Score:  <80% → 0.2 | 80-90% → 0.5 | 90-95% → 0.8 | >95% → 1.0
-DTI Score:  <36% → 0.2 | 36-43% → 0.5 | 43-50% → 0.8 | >50% → 1.0
-Rate Score: <4%  → 0.2 | 4-6%   → 0.5 | 6-8%   → 0.8 | >8%  → 1.0
-Macro Stress: Fixed 0.6 (2024 high rate environment)
-Risk Tiers:
-🟢 LOW      < 0.30  →     409 loans
-🟡 MEDIUM   0.30-0.60 → 266,398 loans
-🟠 HIGH     0.60-0.80 →  69,926 loans
-🔴 CRITICAL > 0.80  →   11,543 loans (avg loan $324,342)
+
+The platform utilizes a deterministic DU (Desktop Underwriter) model to evaluate mortgage applications against macroeconomic stress:
+
+| Vector | Weight | Logic |
+| :--- | :--- | :--- |
+| **LTV (Loan-to-Value)** | 30% | <80% (0.2) \| 80-90% (0.5) \| 90-95% (0.8) \| >95% (1.0) |
+| **DTI (Debt-to-Income)** | 25% | <36% (0.2) \| 36-43% (0.5) \| 43-50% (0.8) \| >50% (1.0) |
+| **Interest Rate** | 25% | <4% (0.2) \| 4-6% (0.5) \| 6-8% (0.8) \| >8% (1.0) |
+| **Macro Stress** | 20% | Fixed offset (0.6) for 2024 high-rate environment |
+
+**Portfolio Risk Tiers:**
+*   🟢 **LOW** (< 0.30)
+*   🟡 **MEDIUM** (0.30 - 0.60)
+*   🟠 **HIGH** (0.60 - 0.80)
+*   🔴 **CRITICAL** (> 0.80)
 ---
 
 ## 🛠️ Tech Stack
@@ -126,67 +123,46 @@ Risk Tiers:
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Explorer
+
+<details>
+<summary>▶ <b>Click to expand project structure</b></summary>
+
+```text
 finrisk_360/
 ├── .github/workflows/          # CI/CD pipelines
 │   ├── ci.yml                  # Tests + validation
 │   └── cd.yml                  # Deploy checks
-├── producers/                  # Data ingestion scripts
-│   ├── hmda_producer.py        # 514K HMDA loans → Kafka
-│   ├── fred_producer.py        # Mortgage rates → Kafka
-│   ├── alpha_vantage_producer.py # Macro data → Kafka
-│   └── census_producer.py      # County demographics
-├── streaming/                  # Streaming bridge
-│   └── kinesis_bridge.py       # Kafka → AWS Kinesis
-├── terraform/                  # AWS Infrastructure as Code
-│   ├── main.tf                 # Provider config
-│   ├── s3.tf                   # Data lake buckets
-│   ├── kinesis.tf              # Kinesis streams
-│   ├── lambda.tf               # Lambda functions
-│   ├── iam.tf                  # Roles + policies
-│   ├── sns.tf                  # Alert topics
-│   ├── glue_catalog.tf         # Catalog + 3 crawlers
-│   ├── eventbridge.tf          # Scheduled triggers
-│   ├── cloudwatch_dashboard.tf # Monitoring dashboard
-│   └── outputs.tf              # Resource ARNs
-├── glue_jobs/                  # PySpark ETL scripts
-│   ├── glue_raw_to_silver.py   # Clean + validate
-│   └── glue_silver_to_gold.py  # Risk scoring formula
-├── finrisk_dbt/                # dbt transformation layer
-│   └── models/
-│       ├── staging/
-│       │   └── stg_loan_risk_scores.sql
-│       └── marts/
-│           ├── mart_risk_summary.sql
-│           ├── mart_high_risk_loans.sql
-│           └── mart_daily_risk_trend.sql
 ├── airflow/dags/               # Airflow orchestration
 │   ├── finrisk_dag.py          # Main pipeline (7 tasks)
-│   ├── finrisk360_alerting_dag.py     # Hourly alerts
-│   ├── finrisk360_data_quality_dag.py # Quality checks
-│   ├── finrisk360_model_refresh_dag.py # Weekly refresh
-│   └── finrisk360_archival_dag.py     # Monthly archival
-├── dashboard/
-│   └── app.py                  # Streamlit 6-page dashboard
-├── api/
-│   └── main.py                 # FastAPI risk scoring API
-├── great_expectations/
-│   └── finrisk360_validations.py # 30 data quality checks
-├── grafana/provisioning/       # Grafana dashboards
-├── tests/                      # Unit tests
-│   ├── test_risk_scoring.py    # Risk formula tests
-│   └── test_api.py             # API endpoint tests
-├── docs/
-│   ├── architecture.md         # System design docs
-│   └── setup_guide.md          # Installation guide
-├── scripts/
-│   ├── setup.sh                # One-command setup
-│   └── teardown.sh             # Clean shutdown
-├── .env.example                # Environment template
-├── .gitignore                  # Comprehensive ignore rules
-├── requirements.txt            # All Python dependencies
-├── docker-compose.yml          # Local infrastructure
-└── README.md
+│   └── ... (4 others)
+├── api/                        # FastAPI risk scoring API
+│   └── main.py                 # REST endpoints
+├── dashboard/                  # Streamlit 6-page dashboard
+│   └── app.py                  # BI Visualization (v2.0)
+├── docs/                       # System & Setup guides
+│   ├── architecture.md         
+│   └── setup_guide.md          
+├── finrisk_dbt/                # dbt transformation layer
+│   └── models/                 # Staging & Marts
+├── glue_jobs/                  # PySpark ETL scripts
+│   ├── glue_raw_to_silver.py   # Raw -> Silver ETL
+│   └── glue_silver_to_gold.py  # Silver -> Gold Scorer
+├── grafana/provisioning/       # Monitoring dashboards
+├── great_expectations/         # 30 data quality checks
+├── producers/                  # Multi-source data ingest
+│   ├── hmda_producer.py        # 514K HMDA loans
+│   └── ... (FRED, Census)
+├── streaming/                  # Kafka -> Kinesis bridge
+│   └── kinesis_bridge.py       
+├── terraform/                  # 15+ managed AWS resources
+│   ├── s3.tf, kinesis.tf       
+│   └── ... (.tf files)
+├── tests/                      # Unit & Integration tests
+├── requirements.txt            # Dependency manifest
+└── docker-compose.yml          # Local infra stack
+```
+</details>
 ---
 
 ## 🔄 Pipeline Flow
