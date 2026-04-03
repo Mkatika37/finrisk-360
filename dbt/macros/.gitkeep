@@ -1,2 +1,0 @@
--- dbt macros placeholder
--- Add reusable Jinja macros here (e.g., custom schema generators, audit columns)
