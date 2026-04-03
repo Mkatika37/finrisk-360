@@ -30,13 +30,15 @@ jobs:
       - name: Verify Terraform files
         run: |
           test -f terraform/main.tf
+          test -f terraform/variables.tf
           test -f terraform/s3.tf
           test -f terraform/kinesis.tf
           test -f terraform/lambda.tf
           test -f terraform/glue_catalog.tf
           test -f terraform/eventbridge.tf
           test -f terraform/cloudwatch_dashboard.tf
-          echo "✅ All Terraform files present"
+          test -f terraform/outputs.tf
+          echo "✅ All Terraform modules present"
 
       - name: Verify dbt models
         run: |
