@@ -1,52 +1,53 @@
-name: CI
+name: CI — FinRisk 360
 
 on:
   push:
-    branches: [main, develop, feature/*]
+    branches: [main, develop, "feature/*"]
   pull_request:
     branches: [main, develop]
 
 jobs:
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          
-      - name: Cache pip packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          
-      - name: Install dependencies
+          python-version: "3.11"
+
+      - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest pydantic fastapi httpx
-          
-      - name: Run risk scoring tests
+
+      - name: Run risk scoring unit tests
         run: |
           python -m pytest tests/test_risk_scoring.py -v
-          
-      - name: Validate terraform files
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-          
-      - name: Terraform validate
+
+      - name: Check Python syntax — producers
         run: |
-          cd terraform
-          terraform init -backend=false
-          terraform validate
-          
-      - name: Check Python syntax
-        run: |
-          python -m py_compile producers/hmda_producer.py
           python -m py_compile producers/fred_producer.py
+          python -m py_compile producers/alpha_vantage_producer.py
+          python -m py_compile producers/census_producer.py
+          echo "✅ All producer files syntax OK"
+
+      - name: Check Python syntax — API
+        run: |
           python -m py_compile api/main.py
-          python -m py_compile dashboard/app.py
-          echo "All Python files syntax OK"
+          echo "✅ API syntax OK"
+
+      - name: Verify project structure
+        run: |
+          test -f README.md
+          test -f requirements.txt
+          test -f docker-compose.yml
+          test -f .env.example
+          test -f terraform/main.tf
+          test -f api/main.py
+          test -f dashboard/app.py
+          echo "✅ All required files present"

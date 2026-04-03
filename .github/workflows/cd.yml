@@ -1,43 +1,63 @@
-name: CD
+name: CD — FinRisk 360
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy-check:
+  validate:
+    name: Validate & Deploy Check
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          
-      - name: Install core dependencies
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pydantic fastapi httpx boto3
-          
+          pip install pytest pydantic fastapi httpx
+
       - name: Run all tests
         run: |
           python -m pytest tests/ -v --tb=short
-          
-      - name: Verify project structure
+
+      - name: Verify Terraform files
         run: |
-          echo "Checking required files exist..."
-          test -f README.md && echo "README.md ✅"
-          test -f requirements.txt && echo "requirements.txt ✅"
-          test -f docker-compose.yml && echo "docker-compose.yml ✅"
-          test -f .env.example && echo ".env.example ✅"
-          test -f terraform/main.tf && echo "terraform/main.tf ✅"
-          test -f api/main.py && echo "api/main.py ✅"
-          test -f dashboard/app.py && echo "dashboard/app.py ✅"
-          echo "All required files present ✅"
-          
-      - name: Notify deployment ready
+          test -f terraform/main.tf
+          test -f terraform/s3.tf
+          test -f terraform/kinesis.tf
+          test -f terraform/lambda.tf
+          test -f terraform/glue_catalog.tf
+          test -f terraform/eventbridge.tf
+          test -f terraform/cloudwatch_dashboard.tf
+          echo "✅ All Terraform files present"
+
+      - name: Verify dbt models
         run: |
-          echo "🚀 FinRisk 360 is ready for deployment!"
-          echo "Pipeline: Kafka → Kinesis → S3 → Glue → Snowflake"
-          echo "Dashboard: Streamlit + FastAPI"
+          test -f finrisk_dbt/models/staging/stg_loan_risk_scores.sql
+          test -f finrisk_dbt/models/marts/mart_risk_summary.sql
+          test -f finrisk_dbt/models/marts/mart_high_risk_loans.sql
+          test -f finrisk_dbt/models/marts/mart_daily_risk_trend.sql
+          echo "✅ All dbt models present"
+
+      - name: Verify Airflow DAGs
+        run: |
+          test -f airflow/dags/finrisk_dag.py
+          test -f airflow/dags/finrisk360_alerting_dag.py
+          test -f airflow/dags/finrisk360_data_quality_dag.py
+          test -f airflow/dags/finrisk360_model_refresh_dag.py
+          test -f airflow/dags/finrisk360_archival_dag.py
+          echo "✅ All Airflow DAGs present"
+
+      - name: Pipeline ready notification
+        run: |
+          echo "🚀 FinRisk 360 pipeline validation complete!"
+          echo "✅ Tests passing"
+          echo "✅ All files verified"
+          echo "✅ Ready for production"
