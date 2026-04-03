@@ -1,33 +1,28 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-.Python
 venv/
 env/
 .env
 *.egg-info/
-dist/
-build/
 
 # Terraform
 .terraform/
 *.tfstate
 *.tfstate.backup
-*.tfvars
 .terraform.lock.hcl
-
-# Airflow
-airflow/logs/
-airflow/plugins/
 
 # dbt
 finrisk_dbt/target/
 finrisk_dbt/dbt_packages/
 finrisk_dbt/logs/
 
-# Data files
+# Airflow
+airflow/logs/
+airflow/plugins/
+
+# Data
 data/*.csv
 data/*.parquet
 *.csv
@@ -35,11 +30,11 @@ data/*.parquet
 # Logs
 logs/
 *.log
+ge_report_*.json
 
 # IDE
 .vscode/
 .idea/
-*.swp
 
 # OS
 .DS_Store
@@ -48,10 +43,7 @@ Thumbs.db
 # Credentials
 *.pem
 *.key
-credentials/
-.aws/
 
 # Test artifacts
 .pytest_cache/
-htmlcov/
 .coverage

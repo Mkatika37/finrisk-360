@@ -1,23 +1,26 @@
 # FinRisk 360 Architecture
 
 ## System Overview
-FinRisk 360 is a production-grade mortgage risk intelligence platform. It processes real-time and batch data to provide a 360-degree view of portfolio risk exposure.
-
-## Component Interactions
-1. **Data Producers**: Scripts (HMDA, FRED, Census) simulate live feeds and historical data ingestion into Kafka.
-2. **Kinesis Bridge**: Bridges Kafka messages to AWS Kinesis for cloud-native ingestion.
-3. **AWS Glue**: Performs Raw-to-Silver and Silver-to-Gold transformations in S3.
-4. **Snowflake**: Serves as the primary analytics warehouse for scoring and reporting.
-5. **FastAPI**: Provides real-time risk scoring using validated DU formulas.
-6. **Grafana/Streamlit**: Visualizes pipeline health and business risk distribution.
+FinRisk 360 is a production-grade mortgage risk 
+intelligence platform processing 514K real HMDA 
+loans using the Fannie Mae DU risk formula.
 
 ## Data Flow
-- `Raw Layer`: JSON/CSV in S3 Raw bucket.
-- `Silver Layer`: Parquet files with schema enforcement.
-- `Gold Layer`: Aggregated views and finalized risk scores in Snowflake.
+1. Producers → Kafka → Kinesis → Lambda → S3 Raw
+2. Glue Crawlers → Glue Data Catalog → Athena
+3. Glue Job 1 → S3 Silver (clean Parquet)
+4. Glue Job 2 → S3 Gold (risk scores)
+5. Snowflake ← S3 Gold (COPY INTO)
+6. dbt → mart models → Streamlit + FastAPI
 
-## Technology Choices
-- **Orchestration**: Apache Airflow.
-- **Monitoring**: Prometheus & Grafana.
-- **Infrastructure**: Terraform.
-- **Transformation**: dbt & AWS Glue.
+## AWS Services
+- Kinesis: Real-time streaming
+- S3: Data lake (3 layers)
+- Lambda: Event-driven processing
+- Glue: ETL + Data Catalog
+- Athena: S3 SQL queries
+- Snowflake: Data warehouse
+- CloudWatch: Monitoring
+- SNS: Alerting
+- EventBridge: Scheduled triggers
+- IAM: Security
