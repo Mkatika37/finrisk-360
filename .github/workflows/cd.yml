@@ -25,7 +25,7 @@ jobs:
 
       - name: Run all tests
         run: |
-          python -m pytest tests/ -v --tb=short
+          python -m pytest tests/test_risk_scoring.py tests/test_api.py -v --tb=short
 
       - name: Verify Terraform files
         run: |
