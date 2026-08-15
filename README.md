@@ -417,8 +417,6 @@ Test Coverage:
 
 **Manohar Katika**
 - 🎓 MS Data Analytics Engineering — George Mason University
-- 💼 Ex-Allstate: AWS Glue, Lambda, Kinesis, Snowflake, Kafka, dbt, Airflow
-- 💼 Ex-Tvisha Technologies: Azure ADF, Databricks, PySpark, MLflow
 - 🐙 GitHub: [github.com/Mkatika37](https://github.com/Mkatika37)
 
 ---
